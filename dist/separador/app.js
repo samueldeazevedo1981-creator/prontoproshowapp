@@ -1,7 +1,7 @@
 import {prepareMix,clickWave,makeGrid,lowerBound} from './mix-engine.js';
 import {onsetEnvelope} from './beat-engine.js';
 import {SAMPLE_RATE,TRACKS,activeGain,wavBytes,clipRange,clock,processingWindows,modelWindowWeight,separationPlan} from './audio-utils.js';
-const $=id=>document.getElementById(id);const MODEL_URL='https://huggingface.co/smank/htdemucs-onnx/resolve/main/htdemucs_6s.onnx';const MODEL_HASH='82cd0479a55b6b4018b948c0bb620975f8cdc75f682f40ad1357d5eb834b438e';
+const $=id=>document.getElementById(id);const MODEL_PARTS=['00','01','02','03'];const MODEL_SIZE=246034354;const MODEL_HASH='82cd0479a55b6b4018b948c0bb620975f8cdc75f682f40ad1357d5eb834b438e';
 let beatResult=null,beatAuto=false,beatWorker=null,beatPending=null,clickTimer=null,clickSources=[],clickNext=0,liveBeats=[],clickBuffer;
 let processingBase=0,processingSpan=1,processingLabel='';
 let selectedFile=null,metadataAudio=null,metadataURL=null,renderedFileName='',encoderWorker=null,encoderPending=null,jobKind='';
@@ -31,7 +31,29 @@ async function modelStore(action,value){const db=await database();try{return awa
 function ensureWorker(){if(worker)return;worker=new Worker(new URL('./separator-worker.js',import.meta.url),{type:'module'});worker.onmessage=({data})=>{if(data.type==='progress'){status(processingLabel+' · IA '+Math.round(data.value*100)+'%',processingBase+processingSpan*data.value);return}if(!pending)return;const {resolve,reject}=pending;pending=null;if(data.type==='error'){ready=false;reject(Error('O processamento local falhou: '+data.message))}else resolve(data)};worker.onerror=()=>{ready=false;pending?.reject(Error('O motor de IA foi interrompido. Pode haver falta de memória ou incompatibilidade do navegador.'));pending=null;worker?.terminate();worker=null;controls()}}
 function send(message,transfer=[]){ensureWorker();return new Promise((resolve,reject)=>{if(pending){reject(Error('Aguarde a operação atual.'));return}pending={resolve,reject};worker.postMessage(message,transfer)})}
 async function verifiedBuffer(blob){if(blob.size<100000000||blob.size>260000000)throw Error('Use o modelo HTDemucs indicado nesta versão (cerca de 181 MB).');const buffer=await blob.arrayBuffer();const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',buffer)),b=>b.toString(16).padStart(2,'0')).join('');if(hash!==MODEL_HASH)throw Error('O modelo está incompleto ou é incompatível com esta versão.');return buffer}
-async function downloadModel(){downloadController=new AbortController();const timeout=setTimeout(()=>downloadController?.abort(),600000);try{const response=await fetch(MODEL_URL,{signal:downloadController.signal});if(!response.ok)throw Error('Não foi possível baixar a IA ('+response.status+'). Tente novamente ou use o modelo local.');const reader=response.body?.getReader();if(!reader)return new Blob([await response.arrayBuffer()]);const parts=[];let loaded=0;const total=Number(response.headers.get('content-length'))||246034354;while(true){const {done,value}=await reader.read();if(done)break;parts.push(value);loaded+=value.length;if(loaded>260000000)throw Error('Download maior que o esperado.');status('Baixando modelo · '+(loaded/1048576).toFixed(0)+' MB',Math.min(.95,loaded/total));}return new Blob(parts)}finally{clearTimeout(timeout);downloadController=null}}
+async function downloadModel(){
+  downloadController=new AbortController();
+  const timeout=setTimeout(()=>downloadController?.abort(),600000);
+  try{
+    const parts=[];
+    let loaded=0;
+    for(const part of MODEL_PARTS){
+      status('Carregando modelo incluído · '+Math.round(loaded/1048576)+' MB',loaded/MODEL_SIZE);
+      const url=new URL('./modelo/htdemucs-6s-'+part,import.meta.url);
+      const response=await fetch(url,{signal:downloadController.signal});
+      if(!response.ok)throw Error('Parte '+part+' do modelo indisponível. Verifique se a pasta modelo foi publicada completa.');
+      const blob=await response.blob();
+      const expected=Math.min(64*1024*1024,MODEL_SIZE-loaded);
+      if(blob.size!==expected)throw Error('Parte '+part+' do modelo incompleta.');
+      parts.push(blob);
+      loaded+=blob.size;
+    }
+    return new Blob(parts);
+  }finally{
+    clearTimeout(timeout);
+    downloadController=null;
+  }
+}
 async function prepare(localFile){if(busy)return;jobKind='model';const current=++task;setBusy(true);status('Procurando modelo salvo neste navegador…',0);try{let blob=localFile;let cached=false;if(!blob){try{blob=await modelStore('get');cached=!!blob}catch{}if(!blob)blob=await downloadModel()}if(current!==task)return;status('Verificando modelo e iniciando IA…',.96);const buffer=await verifiedBuffer(blob);if(current!==task)return;if(!cached){try{await modelStore('put',blob);$('modelStatus').textContent='Modelo salvo neste navegador'}catch{$('modelStatus').textContent='Modelo disponível nesta sessão · cache sem espaço'}}if(current!==task)return;const engine=await send({type:'load',buffer},[buffer]);if(current!==task)return;ready=true;$('loadModel').textContent='✓ IA preparada';$('loadModel').disabled=true;$('modelStatus').textContent+=' · pronto · '+engine.threads+' núcleo(s)';status('IA preparada. Separe a música inteira ou escolha um trecho.');}catch(error){if(current!==task)return;ready=false;worker?.terminate();worker=null;$('modelStatus').textContent='Falha na preparação · tente novamente';status(error.name==='AbortError'?'Download cancelado ou tempo de conexão excedido.':error.message)}finally{if(current===task){setBusy(false);$('loadModel').disabled=ready}}}
 async function chooseAudio(file,fromSetlist=false){if(!file||busy)return;if(!fromSetlist&&!/\.(mp3|wav)$/i.test(file.name)){toast('Escolha MP3 ou WAV.');return}stopPlayback();selectedFile=file;decoded=null;fileName=file.name;if(metadataAudio){metadataAudio.onloadedmetadata=null;metadataAudio.onerror=null;metadataAudio.removeAttribute('src');metadataAudio.load()}if(metadataURL)URL.revokeObjectURL(metadataURL);$('fileLabel').textContent=file.name;$('fileMeta').textContent=(file.size/1048576).toFixed(1)+' MB';$('fileHint').textContent='Arquivo selecionado · lendo duração…';$('clipStart').value=0;$('clipStart').removeAttribute('max');status(ready?'Arquivo pronto. Separe os instrumentos ou converta para MP3.':'Arquivo pronto. Prepare a IA para separar, ou converta direto para MP3.');controls();metadataURL=URL.createObjectURL(file);metadataAudio=new Audio();metadataAudio.preload='metadata';const audio=metadataAudio;audio.onloadedmetadata=()=>{if(selectedFile!==file)return;$('fileHint').textContent=Number.isFinite(audio.duration)?clock(audio.duration)+' · pronto para processar':'Duração calculada ao processar';if(Number.isFinite(audio.duration))$('clipStart').max=Math.max(0,Math.floor(audio.duration)-1);audio.onloadedmetadata=null;audio.removeAttribute('src');audio.load();if(metadataURL){URL.revokeObjectURL(metadataURL);metadataURL=null}};audio.onerror=()=>{if(selectedFile===file)$('fileHint').textContent='Arquivo escolhido · duração calculada ao processar'};audio.src=metadataURL;}
 async function ensureDecoded(current){if(decoded)return decoded;const file=selectedFile;if(!file)throw Error('Selecione um áudio.');status('Decodificando áudio para processamento. Arquivos longos podem demorar…');const ac=audioContext();await ac.resume();const buffer=await file.arrayBuffer();if(current!==task)throw Error('Operação cancelada.');const result=await ac.decodeAudioData(buffer);if(current!==task)throw Error('Operação cancelada.');decoded=result;$('fileHint').textContent=clock(result.duration)+' · '+result.numberOfChannels+' canal(is)';return result}
