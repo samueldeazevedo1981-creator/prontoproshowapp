@@ -1,12 +1,14 @@
-Pronto pro Show — Separar faixas
-Interface e integração: Samuel de Azevedo.
-Motor: demucs-web 1.0.2, MIT (vendor/demucs/LICENSE).
+Pronto pro Show — Separador de seis faixas
+Interface e integração: Pronto pro Show.
+Código de demucs-web 1.0.2, MIT, incluído em vendor/demucs.
 Alterações locais: correção de contagem de blocos e descarte de tensores após inferência.
 ONNX Runtime Web 1.23.2, MIT (vendor/ort/LICENSE).
-IA: Meta HTDemucs de seis fontes. Exportação ONNX por StemSplit. Veja vendor/demucs/DEMUCS-LICENSE e a ficha do modelo.
+IA: Meta HTDemucs, conversão ONNX disponibilizada por smank/htdemucs-onnx. Demucs é distribuído sob MIT (vendor/demucs/DEMUCS-LICENSE). Conversão usada somente pelo hash descrito em app.js.
 Fontes: https://github.com/timcsy/demucs-web e https://github.com/facebookresearch/demucs e https://github.com/microsoft/onnxruntime
-Modelo: https://huggingface.co/alekshandru/htdemucs-6s-onnx
+Modelo: https://huggingface.co/smank/htdemucs-onnx
 Nenhuma afiliação com Moises. Nenhum serviço de IA pago ou chave de API.
 Resultados de separação são estimativas, não gravações originais isoladas. Use áudio para o qual você possui autorização.
 
 MP3: LAME/lamejs 1.2.1, LGPL-3.0, carregado como biblioteca separada sem alterações. https://github.com/zhuker/lamejs e https://lame.sourceforge.net. Aviso original: vendor/lame/LICENSE. Código-fonte correspondente: vendor/lame/lamejs-1.2.1-source.tgz. Pode substituir a biblioteca mantendo API compatível.
+
+Modelo de seis faixas: https://huggingface.co/smank/htdemucs-onnx (conversão ONNX, MIT).

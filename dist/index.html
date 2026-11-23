@@ -108,6 +108,16 @@
   
     .module-frame{display:block;width:100%;height:82vh;min-height:440px;border:0;border-radius:18px;background:#0a1020}
     .tab-nav{flex-wrap:wrap}
+  
+    #bonusLibrary{width:min(92vw,750px);max-height:84vh;background:#101827;color:#fff;border:1px solid #4065b6;border-radius:16px;padding:20px}
+    #bonusLibrary::backdrop{background:#000a}
+    #bonusLibrary h2{font-size:1.5rem;font-weight:800}
+    #bonusLibrary p,#bonusLibrary details,#bonusBrowse,#bonusSongs{margin:12px 0}
+    #bonusLinks{display:grid;gap:8px;margin-top:12px}
+    #bonusLinks a{color:#93c5fd;text-decoration:underline}
+    #bonusSongs{display:grid;gap:6px}
+    .bonus-song{width:100%;text-align:left;white-space:normal}
+    #bonusBrowse input,#bonusBrowse select{margin-top:8px}
   </style>
 </head>
 <body>
@@ -146,6 +156,39 @@
       </div>
     </div>
 
+    <dialog id="showDestination" style="background:#101827;color:white;border:1px solid #4065b6;border-radius:16px;padding:24px;width:min(92vw,440px)" aria-labelledby="destinationTitle">
+      <form id="showDestinationForm" method="dialog" style="display:grid;gap:14px">
+        <h2 id="destinationTitle">Enviar para setlist</h2>
+        <label for="showDestinationSelect">Escolha o destino</label>
+        <select id="showDestinationSelect" class="setlist-select"></select>
+        <input id="showDestinationName" class="setlist-select" placeholder="Nome da nova setlist" aria-label="Nome da nova setlist" maxlength="100" hidden>
+        <div class="flex justify-end gap-2">
+          <button class="btn btn-dark" value="cancelar" formnovalidate>Cancelar</button>
+          <button class="btn btn-red" value="enviar">Enviar</button>
+        </div>
+      </form>
+    </dialog>
+    <div class="flex flex-wrap gap-2 mb-5">
+      <button id="openBonusBases" type="button" class="btn btn-dark">Biblioteca de Bases</button>
+      <button id="openBonusLyrics" type="button" class="btn btn-dark">Letras em TXT</button>
+    </div>
+    <dialog id="bonusLibrary" aria-labelledby="bonusTitle">
+      <div class="flex items-center justify-between gap-3"><h2 id="bonusTitle"></h2><button id="closeBonus" type="button" class="btn btn-dark">Fechar</button></div>
+      <p><strong>Use internet para importar. Toque offline depois.</strong> Depois de salvar no aparelho, você pode usar a faixa e a letra vinculada sem internet.</p>
+      <p id="bonusStatus" role="status"></p>
+      <div id="bonusBrowse" hidden>
+        <input id="bonusSearch" class="setlist-select" type="search" aria-label="Buscar música" placeholder="Buscar música ou artista">
+        <select id="bonusCategory" class="setlist-select" aria-label="Filtrar estilo"></select>
+      </div>
+      <ul id="bonusSongs"></ul>
+      <button id="bonusMore" type="button" class="btn btn-dark" hidden>Ver mais bases</button>
+      <details open>
+        <summary>Pastas no Google Drive</summary>
+        <div id="bonusLinks"></div>
+        <a href="https://drive.google.com/drive/folders/1n8X1wu3PM-RAp6na9wvH-1D8QRE3QTmb?usp=drive_link" target="_blank" rel="noopener">Abrir pasta principal</a>
+      </details>
+      <button id="bonusLyricFile" type="button" class="btn btn-dark" hidden>Vincular TXT à música atual</button>
+    </dialog>
     <nav class="tab-nav" aria-label="Abas do aplicativo">
       <button id="tabPalcoBtn" class="tab-btn active" type="button">PALCO</button>
       <button id="tabSetlistBtn" class="tab-btn" type="button">SETLIST</button>
@@ -509,7 +552,7 @@
   let importingMedia=false;
   function enableMediaInputs(enabled){[el.audioInput,el.audioInputSetlist].filter(Boolean).forEach(input=>input.disabled=!enabled);}
   async function addAudios(files){
-    if(importingMedia)return 0;
+    if(importingMedia||transferringAudio)return 0;
     const selected=Array.from(files||[]);if(!selected.length)return;
     const audios=selected.filter(window.TCMediaImport.isMedia);
     if(!audios.length){setStatus('Selecione um arquivo de áudio ou vídeo, como MP3, WAV ou M4A.');return;}
@@ -903,7 +946,7 @@
     if(activeTab!==tab){
       if(modules[activeTab]) modules[activeTab].frame.contentWindow.pauseShowPreview?.();
       if(modules[tab] && isPlaying)stopPlayer(false);
-      if(modules[tab])void openModule(tab);
+      if(modules[tab])void openModule(tab).then(frame=>frame.refreshShowRepertoire?.());
     }
     activeTab=tab;
     for(const [name,page] of Object.entries(pages)){
@@ -918,12 +961,76 @@
   }
   for(const [name,button] of Object.entries(buttons))button.addEventListener('click',()=>showTab(name));
 
+  const destination=$('showDestination'), destinationForm=$('showDestinationForm');
+  const destinationSelect=$('showDestinationSelect'), destinationName=$('showDestinationName');
+  const newDestination='__new__';
+  function chooseDestination(){
+    destinationSelect.replaceChildren(...setlists.map(item=>new Option(item.name,item.id)),new Option('Criar nova setlist',newDestination));
+    destinationSelect.value=activeSetlistId;
+    destinationName.value='';
+    destinationSelect.onchange=()=>{
+      const creating=destinationSelect.value===newDestination;
+      destinationName.hidden=!creating;
+      destinationName.required=creating;
+      if(creating)destinationName.focus();
+    };
+    destinationSelect.onchange();
+    destination.returnValue='';
+    destinationForm.onsubmit=event=>{
+      if(event.submitter?.value==='cancelar')return;
+      if(destinationSelect.value===newDestination&&!destinationName.value.trim()){
+        event.preventDefault();
+        destinationName.focus();
+      }
+    };
+    return new Promise(resolve=>{
+      destination.addEventListener('close',()=>resolve(destination.returnValue==='enviar'?{
+        id:destinationSelect.value,name:destinationName.value.trim()
+      }:null),{once:true});
+      destination.showModal();
+    });
+  }
+
+  let transferringAudio=false;
   window.addToShowSetlist=async files=>{
-    if(!db || importingMedia)throw new Error('Aguarde a importação atual ou reabra o player.');
-    const count=await addAudios(files);
-    if(!count)throw new Error('Nenhuma faixa foi salva. Confira o espaço disponível no aparelho.');
-    showTab('setlist');
-    return count;
+    if(!db || importingMedia || transferringAudio)throw new Error('Aguarde a importação atual.');
+    if(!files.length || !files.every(window.TCMediaImport.isMedia))throw new Error('Selecione faixas de áudio válidas.');
+    transferringAudio=true;
+    try{
+      const choice=await chooseDestination();
+      if(!choice)return 0;
+      const created=choice.id===newDestination?{id:'setlist_'+crypto.randomUUID(),name:choice.name}:null;
+      const id=created?.id||choice.id;
+      let position=allTracks.filter(t=>t.setlistId===id).reduce((n,t)=>Math.max(n,Number(t.position)||0),-1)+1;
+      const pending=[];
+      for(const file of files)pending.push({
+        id:crypto.randomUUID(), name:file.name.replace(/\.[^.]+$/,''), audio:await window.TCMediaImport.readBlob(file),
+        mediaType:'audio',lyrics:'',pitchTones:0,setlistId:id,position:position++,createdAt:Date.now()
+      });
+      if(created){
+        localStorage.setItem('tcb_setlists',JSON.stringify([...setlists,created]));
+      }
+      try{
+        await new Promise((resolve,reject)=>{
+          const tx=db.transaction(STORE,'readwrite');
+          for(const track of pending)tx.objectStore(STORE).add(track);
+          tx.oncomplete=resolve;
+          tx.onabort=()=>reject(tx.error||new Error('Falha ao salvar o lote.'));
+        });
+      }catch(error){
+        if(created)localStorage.setItem('tcb_setlists',JSON.stringify(setlists));
+        throw error;
+      }
+      if(created)setlists.push(created);
+      allTracks.push(...pending);
+      stopPlayer();
+      activeSetlistId=id;
+      try{localStorage.setItem('tcb_active_setlist',id)}catch{}
+      useActiveTracks();renderSetlists();render();
+      showTab('setlist');
+      setStatus(pending.length+' faixa(s) adicionada(s) à setlist.');
+      return pending.length;
+    }finally{transferringAudio=false;}
   };
 
   function storeNormalizedAudio(changes){
@@ -978,6 +1085,29 @@
   restoreButton.onclick=()=>updateSetlistVolume(true);
   showTab(window.TCPreferences.read('setlist',activeSetlistId).tab || localStorage.getItem('tcb_active_tab') || 'palco',false);
 
+  window.showLibraryStatus=setStatus;
+  window.chooseShowLyrics=()=>{
+    if(!current() || isVideo(current())){
+      showTab('setlist');
+      setStatus('Selecione uma música de áudio antes de vincular a letra.');
+      return;
+    }
+    el.txtInput.click();
+  };
+  window.listShowAudio=()=>allTracks.filter(track=>!isVideo(track)).map(track=>({
+    id:track.id,name:track.name,
+    setlist:setlists.find(item=>item.id===track.setlistId)?.name || 'Setlist'
+  }));
+  window.readShowAudio=id=>{
+    const track=allTracks.find(item=>item.id===id&&!isVideo(item));
+    if(!track)return null;
+    const audio=track.normalizedAudio||track.audio;
+    const extensions={'audio/mpeg':'mp3','audio/mp3':'mp3','audio/wav':'wav','audio/wave':'wav','audio/x-wav':'wav','audio/mp4':'m4a','audio/aac':'aac','audio/ogg':'ogg','audio/flac':'flac'};
+    const originalExtension=/\.([a-z0-9]+)$/i.exec(audio.name||'')?.[1];
+    const extension=extensions[audio.type]||originalExtension||'audio';
+    return new File([audio],track.name+'.'+extension,{type:audio.type});
+  };
+
   updateAutoPlayUI(); updateAutoScrollUI(); updateScrollSpeedUI(); updateFontSizeUI(); updatePitchUI();
   load().catch(err=>{console.error(err);setStatus('Não foi possível acessar os arquivos locais. Verifique o espaço e as permissões deste navegador.');});
 })();
@@ -990,5 +1120,6 @@
     <p style="margin:0;">Todos os direitos reservados.</p>
   </footer>
 
+<script src="./biblioteca.js"></script>
 </body>
 </html>

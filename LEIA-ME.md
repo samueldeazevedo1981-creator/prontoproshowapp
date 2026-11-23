@@ -1,21 +1,15 @@
 # PRONTO PRO SHOW - O APLICATIVO DO MÚSICO AO VIVO
 
-## Rodar com separação por IA
+## Hospedagem
+A pasta `dist` contém o app estático. Na Vercel, importe o repositório com `vercel.json` na raiz e `dist` como saída. Em outra hospedagem, sirva `dist` por HTTPS. O modelo de IA é baixado pelo navegador e o áudio do músico é processado no próprio aparelho. Esta versão dispensa o servidor Python/Docker da versão anterior.
 
-Extraia o ZIP e abra a pasta que contém o Dockerfile. Rode:
+## Uso
+- Igualar Áudio: importe os arquivos, normalize o lote e toque em **Enviar lote para setlist**. Selecione uma existente ou escolha **Criar nova setlist** e digite o nome. Também é possível enviar uma faixa por vez.
+- Separar Faixas: toque em **Preparar IA** para baixar o modelo HTDemucs de aproximadamente 246 MB, ou selecione manualmente o arquivo ONNX compatível. O modelo de seis faixas entrega voz, bateria, baixo, guitarra, piano e outros. Em Qualidade, usa as mesmas janelas e sobreposição do teste em Rua Ramalhete. Silencie Guitarra e envie a mix para uma setlist para usar a base. Órgãos e sintetizadores podem permanecer em Outros. O mixer tem solo, mute, volume, pan e click. Use **Enviar mix para setlist** para guardar a mixagem.
+- Palco: as faixas importadas e as setlists ficam no navegador. Para recuperar repertório de uma instalação, use o mesmo endereço e perfil de navegador. Em outro domínio, importe novamente seus arquivos.
+- O navegador pode liberar espaço ocupado pelo cache. Antes do show, confira a reprodução e os arquivos necessários no aparelho que será usado.
 
-```sh
-docker build -t pronto-pro-show .
-docker run --rm -p 3000:3000 pronto-pro-show
-```
+## Biblioteca de Bases e Letras em TXT
+O catálogo incluído é um recorte da listagem pública do Drive (1.581 MP3s). Para arquivos fora do catálogo, abra a pasta no Drive, baixe a base e use Carregar Áudio/Vídeo. O botão Letras em TXT abre as pastas de letras. Baixe um TXT e use Vincular TXT à música atual. É necessário estar online para buscar arquivos no Drive. Áudios importados e letras vinculadas ficam disponíveis no aparelho para uso offline.
 
-Acesse http://localhost:3000. Para produção, publique esse contêiner em um serviço com HTTPS e encaminhe a porta 3000. O servidor atende a interface e a rota de separação no mesmo endereço. A pasta dist também funciona em hospedagem estática para Palco, Setlist e Igualar Áudio.
-
-## Abas e dados
-
-- Palco e Setlist usam o armazenamento do navegador. Abra o app no endereço antigo para reutilizar os dados guardados naquele endereço. Em outro domínio, os dados ficam no endereço de origem e as bases e letras precisam ser importadas no novo app.
-- Separar Faixas usa o motor ONNX incluído. Aceita MP3 de até 4,4 MB e 10 minutos, processa um pedido por vez e oferece guitarra isolada, sem guitarra e sem guitarra e voz. O botão de adicionar envia a faixa escolhida para a setlist ativa no player.
-- Igualar Áudio trabalha no navegador. No próprio player, abra a setlist e toque em Igualar volume das bases. O app guarda as versões preparadas no aparelho e permite voltar aos volumes originais. Reserve espaço local para essas versões.
-- Para o modo offline, carregue o app com conexão e aguarde a confirmação do cache. A separação de uma música nova precisa do servidor. Os áudios já importados no player podem tocar offline.
-
-O pacote não publica nem altera a hospedagem existente.
+Em Separar Faixas ou Igualar Áudio, use o seletor de músicas das setlists para trabalhar com áudio já salvo. Em Igualar Áudio, é possível selecionar várias faixas. Envie a mixagem ou o lote tratado para uma setlist existente ou nova.

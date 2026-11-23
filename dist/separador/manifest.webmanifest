@@ -1,14 +1,23 @@
 {
-  "name": "Pronto pro Show",
-  "short_name": "Pronto pro Show",
+  "name": "Pronto pro Show Separador de Faixas",
+  "short_name": "TC Separador",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "theme_color": "#101510",
-  "background_color": "#101510",
-  "lang": "pt-BR",
+  "background_color": "#080c0b",
+  "theme_color": "#00cf70",
   "icons": [
-    {"src":"./icon-192.png","sizes":"192x192","type":"image/png"},
-    {"src":"./icon-512.png","sizes":"512x512","type":"image/png"}
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

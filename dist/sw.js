@@ -1,13 +1,33 @@
-const CACHE_NAME = 'pronto-pro-show-offline-v1';
+const CACHE_NAME = 'pronto-pro-show-offline-v6';
 const PREFIX = 'pronto-pro-show-offline-';
 // Only executable app resources may block offline installation.
 const APP_SHELL = ['./index.html','./pedal.js','./lyrics.js','./media-import.js','./preferences.js','./soundtouch-node.js','./constants.js','./soundtouch-processor.js','./vendor/tailwind.js','./vendor/pdf.min.mjs','./vendor/pdf.worker.min.mjs'];
-APP_SHELL.push(
-  './separador/index.html','./separador/style.css','./separador/estudo.js','./separador/separacao-online.js',
-  './separador/audio-utils.js','./separador/faixas.js','./separador/setlist-storage.js',
-  './separador/mp3-worker.js','./separador/vendor/lame/lame.min.js','./separador/install.js',
-  './separador/icon-192.png','./volume/index.html','./volume/icon-192.png'
-);
+APP_SHELL.push(...[
+  "./biblioteca.js",
+  "./biblioteca-drive.json",
+  "./repertorio.js",
+  "./volume/index.html",
+  "./volume/icon-192.png",
+  "./separador/app.js",
+  "./separador/audio-utils.js",
+  "./separador/beat-engine.js",
+  "./separador/beat-worker.js",
+  "./separador/index.html",
+  "./separador/mix-engine.js",
+  "./separador/mp3-worker.js",
+  "./separador/separator-worker.js",
+  "./separador/style.css",
+  "./separador/vendor/demucs/src/constants.js",
+  "./separador/vendor/demucs/src/fft.js",
+  "./separador/vendor/demucs/src/index.js",
+  "./separador/vendor/demucs/src/processor.js",
+  "./separador/vendor/lame/lame.min.js",
+  "./separador/vendor/ort/ort-wasm-simd-threaded.mjs",
+  "./separador/vendor/ort/ort-wasm-simd-threaded.wasm",
+  "./separador/vendor/ort/ort.wasm.min.mjs",
+  "./separador/icon-192.png",
+  "./separador/logo.png"
+]);
 const OPTIONAL_ASSETS = ['./manifest.json','./icon.png','./icon-192.png','./icon-512.png','./SOUNDTOUCH-LICENSE.txt'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   const cache=await caches.open(CACHE_NAME);
