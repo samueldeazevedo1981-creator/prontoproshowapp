@@ -136,6 +136,13 @@
     #lyricsSearchResults span{flex:1 1 12rem;overflow-wrap:anywhere}
     #lyricsPreviewText{max-height:28vh;overflow:auto;white-space:pre-wrap;padding:.6rem;background:#090d15;margin:.45rem 0}
     .collection-seal{display:block;width:96px;height:96px;margin:0 auto 10px;object-fit:contain;clip-path:circle(49.2% at 50% 49.4%)}
+  #tabDownloadsBtn{grid-column:1 / -1;border-color:#60a5fa;color:#bfdbfe}
+    #tabDownloadsBtn.active{background:#1d4ed8;color:#fff}
+    .download-panel{padding:clamp(18px,4vw,32px);margin-bottom:16px}
+    .download-panel h2{font-size:clamp(1.35rem,4vw,1.9rem);font-weight:900}
+    .download-panel p{margin-top:.75rem}
+    .download-panel .btn{min-height:44px}
+    #downloadStatus:empty{display:none}
 </style>
 </head>
 <body>
@@ -230,7 +237,19 @@
       <button id="tabSetlistBtn" class="tab-btn" type="button">SETLIST</button>
       <button id="tabSepararBtn" class="tab-btn" type="button">SEPARAR FAIXAS</button>
       <button id="tabVolumeBtn" class="tab-btn" type="button">IGUALAR ÁUDIO</button>
+      <button id="tabDownloadsBtn" class="tab-btn" type="button">DOWNLOADS DO YOUTUBE</button>
     </nav>
+    <section id="tabDownloads" class="tab-page stage-panel download-panel rounded-[28px]" aria-labelledby="downloadsTitle">
+      <h2 id="downloadsTitle">Downloads do YouTube</h2>
+      <p>Abra o YTSave em outra aba e baixe o conteúdo que você tem autorização para usar. Depois, volte aqui e selecione o arquivo na pasta de downloads do aparelho.</p>
+      <a class="btn btn-red mt-4" href="https://app.ytsave.to/pt2/" target="_blank" rel="noopener noreferrer">Abrir YTSave ↗</a>
+      <p>Áudio em MP3 ou M4A vai para a setlist que você escolher. Vídeo em MP4 vai para a Setlist de Vídeos.</p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <label class="btn btn-dark media-upload-label">Importar áudio para setlist<input id="downloadAudioInput" class="media-file-picker" type="file" accept=".mp3,.m4a,audio/mpeg,audio/mp4" multiple disabled></label>
+        <label class="btn btn-dark media-upload-label">Importar vídeo para setlist<input id="downloadVideoInput" class="media-file-picker" type="file" accept=".mp4,video/mp4" multiple disabled></label>
+      </div>
+      <p id="downloadStatus" role="status"></p>
+    </section>
     <section id="tabSeparar" class="tab-page">
       <iframe id="frameSeparar" class="module-frame" title="Separar faixas" allow="autoplay"></iframe>
     </section>
@@ -616,8 +635,10 @@
     useActiveTracks();renderSetlists();setStatus(allTracks.length?'Arquivos e setlists recuperados do aparelho.':'Pronto para receber áudios.');render();enableMediaInputs(true);
   }
 
+  const downloadAudioInput=$('downloadAudioInput');
+  const downloadVideoInput=$('downloadVideoInput');
   let importingMedia=false;
-  function enableMediaInputs(enabled){[el.audioInput,el.audioInputSetlist].filter(Boolean).forEach(input=>input.disabled=!enabled);}
+  function enableMediaInputs(enabled){[el.audioInput,el.audioInputSetlist,downloadAudioInput,downloadVideoInput].filter(Boolean).forEach(input=>input.disabled=!enabled);}
   async function addAudios(files){
     if(importingMedia||transferringAudio)return 0;
     const selected=Array.from(files||[]);if(!selected.length)return;
@@ -1087,8 +1108,8 @@
     separar: {frame:$('frameSeparar'), url:'./separador/index.html'},
     volume: {frame:$('frameVolume'), url:'./volume/index.html'}
   };
-  const pages = {palco:$('tabPalco'), setlist:$('tabSetlist'), separar:$('tabSeparar'), volume:$('tabVolume')};
-  const buttons = {palco:$('tabPalcoBtn'), setlist:$('tabSetlistBtn'), separar:$('tabSepararBtn'), volume:$('tabVolumeBtn')};
+  const pages = {palco:$('tabPalco'), setlist:$('tabSetlist'), separar:$('tabSeparar'), volume:$('tabVolume'), downloads:$('tabDownloads')};
+  const buttons = {palco:$('tabPalcoBtn'), setlist:$('tabSetlistBtn'), separar:$('tabSepararBtn'), volume:$('tabVolumeBtn'), downloads:$('tabDownloadsBtn')};
   let activeTab;
   function openModule(name){
     const {frame,url}=modules[name];
@@ -1111,7 +1132,7 @@
       buttons[name].classList.toggle('active',tab===name);
       buttons[name].setAttribute('aria-pressed',String(tab===name));
     }
-    if(modules[tab])return;
+    if(modules[tab] || tab==='downloads')return;
     localStorage.setItem('tcb_active_tab',tab);
     if(persist)saveSetlistSettings({tab});
     setStatus(tab==='palco'?'Modo Palco: controles principais e letra/cifra.':'Modo Setlist: organize áudios, letras/PDFs e ordem do show.');
@@ -1197,6 +1218,30 @@
       return pending.length;
     }finally{transferringAudio=false;}
   };
+
+  const downloadStatus=$('downloadStatus');
+  for(const [input,format] of [[downloadAudioInput,/\.(mp3|m4a)$/i],[downloadVideoInput,/\.mp4$/i]]){
+    input.addEventListener('change',async ()=>{
+      const files=Array.from(input.files);
+      input.value='';
+      if(!files.length)return;
+      const video=input===downloadVideoInput;
+      if(files.some(file=>!format.test(file.name) || window.TCMediaImport.isVideo(file)!==video)){
+        downloadStatus.textContent=video?'Selecione vídeos em MP4.':'Selecione áudios em MP3 ou M4A.';
+        return;
+      }
+      enableMediaInputs(false);
+      downloadStatus.textContent=video?'Salvando na Setlist de Vídeos…':'Escolha a setlist de áudio.';
+      try{
+        const count=await window.addToShowSetlist(files);
+        downloadStatus.textContent=count?'Arquivos salvos para uso offline.':'Importação cancelada.';
+      }catch(error){
+        downloadStatus.textContent=window.TCMediaImport.errorMessage(error);
+      }finally{
+        enableMediaInputs(Boolean(db) && !importingMedia && !transferringAudio);
+      }
+    });
+  }
 
   function storeNormalizedAudio(changes){
     return new Promise((resolve,reject)=>{
