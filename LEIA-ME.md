@@ -20,3 +20,8 @@ Em Separar Faixas ou Igualar Áudio, use o seletor de músicas das setlists para
 - Importe MP4 ou AVI pelo botão Carregar Áudio/Vídeo ou pela Biblioteca de Vídeos. O conversor de AVI baixa o motor FFmpeg WebAssembly sob demanda e prepara um MP4 H.264/AAC de até 720p no próprio aparelho. O limite de AVI é 100 MiB. Em aparelhos com pouca memória ou para arquivos maiores, converta para MP4 antes de importar.
 - Os vídeos salvos tocam offline. O app reúne os vídeos em Setlist de Vídeos e move para ela os vídeos salvos anteriormente. Ao importar, o primeiro vídeo do lote abre em tela cheia no modo Palco. Use Anterior, Próxima, Reproduzir/Pausar e Sair da tela cheia.
 - A biblioteca indexa os vídeos visíveis na listagem pública. Use o link da pasta principal para consultar o acervo no Drive.
+
+## Buscador de letras e cifras
+- Em **Buscar letras e cifras**, digite o nome da música ou do artista. Abra **Letra** ou **Cifra** para ver o TXT.
+- Para guardar o texto na setlist, selecione uma faixa de áudio e use **Vincular à faixa selecionada**. O texto vinculado fica disponível offline.
+- Na hospedagem, mantenha a pasta `dist/acervo-letras`. A busca usa os acervos TXT enviados. O vínculo manual continua aceitando TXT e PDF.

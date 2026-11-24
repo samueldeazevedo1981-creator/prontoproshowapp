@@ -1,9 +1,11 @@
-const CACHE_NAME = 'pronto-pro-show-offline-v9';
+const CACHE_NAME = 'pronto-pro-show-offline-v12';
 const PREFIX = 'pronto-pro-show-offline-';
 // Only executable app resources may block offline installation.
 const APP_SHELL = ['./index.html','./pedal.js','./lyrics.js','./media-import.js','./preferences.js','./soundtouch-node.js','./constants.js','./soundtouch-processor.js','./vendor/tailwind.js','./vendor/pdf.min.mjs','./vendor/pdf.worker.min.mjs'];
 APP_SHELL.push(...[
   "./biblioteca.js",
+  "./buscador-letras.js",
+  "./colecao-trucker-cap-studio.png",
   "./biblioteca-drive.json",
   "./biblioteca-videos.json",
   "./avi-worker.js",
