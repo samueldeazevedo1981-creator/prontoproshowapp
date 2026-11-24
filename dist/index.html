@@ -143,6 +143,11 @@
     .download-panel p{margin-top:.75rem}
     .download-panel .btn{min-height:44px}
     #downloadStatus:empty{display:none}
+    #tabManualBtn{grid-column:1 / -1}
+    .manual-panel{padding:clamp(18px,4vw,36px);margin-bottom:16px;line-height:1.65}
+    .manual-panel h2{font-size:clamp(1.4rem,4vw,2rem);font-weight:900;line-height:1.2}
+    .manual-panel h3{margin-top:1.35rem;color:#93c5fd;font-size:1.2rem;font-weight:800}
+    .manual-panel p{max-width:76ch;margin-top:.55rem}
 </style>
 </head>
 <body>
@@ -238,7 +243,40 @@
       <button id="tabSepararBtn" class="tab-btn" type="button">SEPARAR FAIXAS</button>
       <button id="tabVolumeBtn" class="tab-btn" type="button">IGUALAR ÁUDIO</button>
       <button id="tabDownloadsBtn" class="tab-btn" type="button">DOWNLOADS DO YOUTUBE</button>
+      <button id="tabManualBtn" class="tab-btn" type="button">MANUAL DE INSTRUÇÕES</button>
     </nav>
+    <section id="tabManual" class="tab-page stage-panel manual-panel rounded-[28px]" aria-labelledby="manualTitle">
+      <h2 id="manualTitle">Manual de instruções — Pronto pro Show</h2>
+
+      <h3>1. Instale o aplicativo</h3>
+      <p>No <strong>Android, Windows ou Mac</strong>, abra o link do Pronto pro Show no navegador e selecione <strong>Instalar App</strong>, se o botão estiver disponível. No <strong>iPhone ou iPad</strong>, abra o link no <strong>Safari</strong>, toque em <strong>Compartilhar</strong> e escolha <strong>Adicionar à Tela de Início</strong>. Na primeira utilização, abra o app com internet e aguarde a confirmação de que ele está pronto para uso offline.</p>
+
+      <h3>2. Monte sua setlist</h3>
+      <p>Abra <strong>Setlist</strong>, toque em <strong>+ Nova</strong> e dê um nome à lista. Com ela selecionada, toque em <strong>Carregar Áudio/Vídeo</strong> e escolha os arquivos. Os áudios entram na setlist selecionada. Os vídeos vão para a <strong>Setlist de Vídeos</strong>. Organize as faixas na ordem do show e ajuste o tom das bases de áudio, se precisar.</p>
+
+      <h3>3. Baixe áudio ou vídeo do YouTube</h3>
+      <p>Copie o link do conteúdo que você tem autorização para usar. Abra <strong>Downloads do YouTube</strong>, toque em <strong>Abrir YTSave</strong> e cole o link no site. Escolha <strong>MP3 ou M4A</strong> para áudio ou <strong>MP4</strong> para vídeo. Quando o download terminar, volte ao app e toque em <strong>Importar áudio para setlist</strong> ou <strong>Importar vídeo para setlist</strong>. Selecione o arquivo na pasta <strong>Downloads</strong>. No iPhone ou iPad, procure pelo app <strong>Arquivos</strong>.</p>
+      <p>Para áudio, escolha uma setlist existente ou crie uma nova. O MP4 vai direto para a <strong>Setlist de Vídeos</strong>. O download exige internet. Depois da importação, o arquivo fica disponível offline no mesmo aparelho.</p>
+
+      <h3>4. Use as bibliotecas e o acervo no Drive</h3>
+      <p>Abra a <strong>Biblioteca de Bases</strong> para buscar áudios ou a <strong>Biblioteca de Vídeos</strong> para buscar bases em vídeo. Escolha o material e importe para a setlist correspondente. Em <strong>Acervo no Drive</strong>, abra as coleções de bases, letras e cifras. Baixe o arquivo desejado e volte ao app para importar a base ou vincular a letra.</p>
+
+      <h3>5. Coloque a letra ou cifra na tela</h3>
+      <p>Em <strong>Setlist</strong>, selecione a faixa de áudio. Toque em <strong>Upload TXT/PDF</strong> para escolher um arquivo do aparelho. Para pesquisar no app, abra <strong>Buscar letras e cifras</strong>, digite a música ou o artista, abra o resultado e toque em <strong>Vincular à faixa selecionada</strong>. Confira a letra e a rolagem no <strong>Palco</strong>.</p>
+
+      <h3>6. Iguale o volume das bases</h3>
+      <p>Se o repertório já estiver montado, abra <strong>Setlist</strong>, selecione a lista do show e toque em <strong>Igualar volume das bases</strong>. Após o processamento, ouça algumas faixas. Se quiser desfazer o ajuste, toque em <strong>Usar volumes originais</strong>.</p>
+      <p>Para comparar antes de enviar ao repertório, abra <strong>Igualar Áudio</strong>. Toque em <strong>Adicionar áudios</strong> para carregar arquivos do aparelho. Para usar faixas do app, marque-as em <strong>Usar músicas das setlists</strong> e toque em <strong>Adicionar selecionadas ao lote</strong>. Comece em <strong>−18 dBFS RMS</strong> e toque em <strong>Normalizar lote</strong>. Compare <strong>Original</strong> e <strong>Normalizado</strong>. Toque em <strong>Enviar lote para setlist</strong> e escolha onde salvar os MP3s ajustados.</p>
+
+      <h3>7. Separe instrumentos e crie sua própria base</h3>
+      <p>Abra <strong>Separar Faixas</strong> e carregue um áudio. Para usar uma faixa do app, escolha em <strong>Usar música das setlists</strong> e toque em <strong>Carregar música</strong>. Na primeira vez, com internet, toque em <strong>Preparar IA</strong> e aguarde o download do modelo.</p>
+      <p>Em <strong>Duração</strong>, escolha <strong>30 segundos · teste</strong> se quiser ouvir um trecho antes de processar a música inteira. Escolha <strong>Rápido</strong> ou <strong>Qualidade</strong> e toque em <strong>Separar instrumentos</strong>. Na mesa de som, ajuste as pistas de <strong>voz, bateria, baixo, guitarra, piano e outros</strong>. Silencie <strong>Guitarra</strong> para tocar no lugar do guitarrista ou <strong>Voz</strong> para cantar com a base. Para estudar um instrumento isolado, deixe ligada apenas a pista desejada.</p>
+      <p>Para usar metrônomo, toque em <strong>Reconhecer beat</strong> e ative <strong>Ouvir click</strong>. Ajuste <strong>BPM</strong>, <strong>alinhamento</strong>, <strong>volume</strong> e <strong>pan</strong> conforme necessário. Para gravar o click junto ao arquivo baixado, marque <strong>Incluir click ao baixar a mixagem</strong>. Use <strong>Enviar mix para setlist</strong> para salvar no repertório ou <strong>Baixar mix</strong> para exportar em MP3 ou WAV. Confira o resultado antes do show, pois a separação varia conforme a gravação.</p>
+
+      <h3>8. Toque no modo Palco</h3>
+      <p>Selecione a setlist do show, abra <strong>Palco</strong>, escolha a primeira faixa e pressione <strong>Play</strong>. Use os controles para pausar, voltar ou avançar. Com um pedal compatível, abra <strong>Configurar Pedal</strong>, ative o controle e atribua ações como tocar, pausar, trocar de música ou rolar a letra.</p>
+      <p><strong>Antes do show</strong>, desligue a internet e reabra o app no aparelho que vai usar no palco. Teste as bases, as letras vinculadas, os vídeos e o pedal, se for usá-lo.</p>
+    </section>
     <section id="tabDownloads" class="tab-page stage-panel download-panel rounded-[28px]" aria-labelledby="downloadsTitle">
       <h2 id="downloadsTitle">Downloads do YouTube</h2>
       <p>Abra o YTSave em outra aba e baixe o conteúdo que você tem autorização para usar. Depois, volte aqui e selecione o arquivo na pasta de downloads do aparelho.</p>
@@ -1108,8 +1146,8 @@
     separar: {frame:$('frameSeparar'), url:'./separador/index.html'},
     volume: {frame:$('frameVolume'), url:'./volume/index.html'}
   };
-  const pages = {palco:$('tabPalco'), setlist:$('tabSetlist'), separar:$('tabSeparar'), volume:$('tabVolume'), downloads:$('tabDownloads')};
-  const buttons = {palco:$('tabPalcoBtn'), setlist:$('tabSetlistBtn'), separar:$('tabSepararBtn'), volume:$('tabVolumeBtn'), downloads:$('tabDownloadsBtn')};
+  const pages = {palco:$('tabPalco'), setlist:$('tabSetlist'), separar:$('tabSeparar'), volume:$('tabVolume'), downloads:$('tabDownloads'), manual:$('tabManual')};
+  const buttons = {palco:$('tabPalcoBtn'), setlist:$('tabSetlistBtn'), separar:$('tabSepararBtn'), volume:$('tabVolumeBtn'), downloads:$('tabDownloadsBtn'), manual:$('tabManualBtn')};
   let activeTab;
   function openModule(name){
     const {frame,url}=modules[name];
@@ -1132,7 +1170,7 @@
       buttons[name].classList.toggle('active',tab===name);
       buttons[name].setAttribute('aria-pressed',String(tab===name));
     }
-    if(modules[tab] || tab==='downloads')return;
+    if(modules[tab] || tab==='downloads' || tab==='manual')return;
     localStorage.setItem('tcb_active_tab',tab);
     if(persist)saveSetlistSettings({tab});
     setStatus(tab==='palco'?'Modo Palco: controles principais e letra/cifra.':'Modo Setlist: organize áudios, letras/PDFs e ordem do show.');
