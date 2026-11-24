@@ -108,14 +108,15 @@
     if (busy) return;
     const current = ++generation;
     kind = requested;
-    const lyrics = requested === 'lyrics';
+    const drive = requested === 'drive';
     const videos = requested === 'videos';
     const key = videos ? 'videos' : 'bases';
-    title.textContent = lyrics ? 'Letras em TXT' : videos ? 'Biblioteca de Vídeos' : 'Biblioteca de Bases';
+    title.textContent = drive ? 'Acervo no Drive' : videos ? 'Biblioteca de Vídeos' : 'Biblioteca de Bases';
     root.href = videos ? videoRoot : baseRoot;
     more.textContent = videos ? 'Ver mais vídeos' : 'Ver mais bases';
-    browse.hidden = lyrics;
-    lyricFile.hidden = !lyrics;
+    browse.hidden = drive;
+    lyricFile.hidden = !drive;
+    root.hidden = drive;
     links.replaceChildren();
     songs.replaceChildren();
     more.hidden = true;
@@ -129,18 +130,26 @@
       }
       if (current !== generation || !dialog.open) return;
       catalog = catalogs[key];
-      const folders = lyrics ? catalog.lyrics : catalog.folders;
-      for (const folder of folders) {
+      const addFolder = (name, href) => {
         const anchor = document.createElement('a');
-        anchor.href = folderUrl(folder.id);
+        anchor.href = href;
         anchor.target = '_blank';
         anchor.rel = 'noopener';
-        anchor.textContent = folder.name;
+        anchor.textContent = name;
         links.append(anchor);
-      }
-      if (lyrics) {
-        status.textContent = 'Escolha uma letra no Drive, baixe o TXT e toque em Vincular TXT à música atual.';
+      };
+      const addGroup = (name, folders) => {
+        const heading = document.createElement('strong');
+        heading.textContent = name;
+        links.append(heading);
+        for (const folder of folders) addFolder(folder.name, folderUrl(folder.id));
+      };
+      if (drive) {
+        addGroup('Bases', catalog.folders);
+        addGroup('Letras e cifras', catalog.lyrics);
+        status.textContent = 'Abra uma pasta para baixar bases, letras ou cifras pelo Google Drive.';
       } else {
+        for (const folder of catalog.folders) addFolder(folder.name, folderUrl(folder.id));
         category.replaceChildren(new Option(videos ? 'Todos os vídeos' : 'Todos os estilos', ''), ...[...new Set(catalog.songs.map(song => song.category))].map(name => new Option(name, name)));
         search.value = '';
         limit = pageSize;
@@ -153,7 +162,7 @@
 
   byId('openBonusBases').onclick = () => open('bases');
   byId('openBonusVideos').onclick = () => open('videos');
-  byId('openBonusLyrics').onclick = () => open('lyrics');
+  byId('openBonusLyrics').onclick = () => open('drive');
   byId('closeBonus').onclick = () => dialog.close();
   lyricFile.onclick = () => { dialog.close(); window.chooseShowLyrics(); };
   search.oninput = category.onchange = () => { limit = pageSize; render(); };
